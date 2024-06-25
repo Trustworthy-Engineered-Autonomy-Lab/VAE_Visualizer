@@ -128,7 +128,7 @@ class Vae_Visualizer:
                                                  aspect=aspect_ratio)
 
         # Set custom ticks for the x and y axes
-        self.ax_image.set_yticks(np.arange(-1, 1, 0.2))
+        self.ax_image.set_yticks(np.arange(1, -1, -0.2))
         self.ax_image.set_xticks(np.arange(-40, 50, 10))
 
         # Set axis labels
@@ -278,9 +278,9 @@ class Vae_Visualizer:
         self.img_display.set_data(img_init)
         self.fig_image.canvas.draw_idle()
 
-        img_g = self.image_grid[4][4].squeeze(0).detach().numpy()
+        img_g = self.image_grid[5][4].squeeze(0).detach().numpy()
         img_g = np.transpose(img_g, (1, 2, 0))
-        out, mu, logv = vae.forward(self.image_grid[3][3])
+        out, mu, logv = vae.forward(self.image_grid[5][4])
         out = np.transpose(out.cpu().detach().numpy().squeeze(0), (1, 2, 0))
 
         self.img_display2.set_data(out)
