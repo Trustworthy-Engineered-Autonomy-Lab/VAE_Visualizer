@@ -74,12 +74,11 @@ def loss_function(recon_x, x, mu, logvar):
     return reconstruction_loss + kl_divergence
 
 class Vae_Visualizer:
-    def __init__(self, latent_size, vae, vae_cmp, initial_image_path, device="cpu", dist_method="cosine"):
+    def __init__(self, latent_size, vae, initial_image_path, device="cpu", dist_method="cosine"):
         # Initialize the visualizer with VAE models and other parameters
         self.latent_size = latent_size
         self.device = device
         self.vae = vae
-        self.vae_cmp = vae_cmp
         self.init_latent = None
         self.dist_method = dist_method
 
@@ -354,10 +353,5 @@ if __name__ == '__main__':
     vae.load_state_dict(best)
     vae.eval()
 
-    latent_sz_cmp = 2
-    vae_cmp = VAE(latent_size=latent_sz_cmp).to(device)
-    best_cmp = torch.load("best_model_2.pth", map_location=torch.device('cpu'))
-    vae_cmp.load_state_dict(best_cmp)
-    vae_cmp.eval()
 
-    viz = Vae_Visualizer(latent_sz, vae, vae_cmp, 'input_0.png', device)
+    viz = Vae_Visualizer(latent_sz, vae, 'input_0.png', device)
