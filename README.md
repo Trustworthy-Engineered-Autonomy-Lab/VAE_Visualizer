@@ -2,6 +2,7 @@
 
 This project visualizes the output of a Variational Autoencoder (VAE) using sliders to manipulate the latent space. It includes a visualizer to show generated images and the differences between them.
 
+The `Vae_Visualizer` class provides an interactive visualization tool for exploring the latent space of a Variational Autoencoder (VAE) using sliders. It takes an input image of the OpenAI CartPole environment, processes it into the latent space using the VAE, and allows users to manipulate the latent vectors via sliders. The generated images are displayed and compared to a heatmap grid of other CartPole images with various angles and positions, where darker cells indicate less similarity and lighter cells indicate more.
 ## Features
 
 - **VAE Architecture:** Convolutional layers for encoding and decoding images.
