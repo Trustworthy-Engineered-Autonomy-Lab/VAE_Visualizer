@@ -14,7 +14,7 @@ The `Vae_Visualizer` class provides an interactive visualization tool for explor
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/MrinallU/VAE_Visualizer
+   git clone https://github.com/Trustworthy-Engineered-Autonomy-Lab/VAE_Visualizer
    cd VAE_Visualizer
    ```
 
