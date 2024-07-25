@@ -1,0 +1,5 @@
+ * add parameter for state increments (x and y axis)
+  * On that note add an inital state paramter to find where the grid axis should start as well as end. 
+ * add ability for a custom get image method, maybe add in a get image class into the code?
+ * Clarify how the starting slider values should be populated?
+

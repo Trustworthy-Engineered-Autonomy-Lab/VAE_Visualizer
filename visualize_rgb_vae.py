@@ -151,7 +151,7 @@ class Vae_Visualizer:
         # Set initial slider values based on the latent vector from the initial image
         print(img_latent)  # Print the initial latent vector
         for i in range(latent_size):
-            self.slider_values[i] = img_latent.detach().numpy()[i]  # Set slider value to the corresponding latent vector value
+            self.slider_values[i] = img_latent.detach().cpu().numpy()[i]  # Set slider value to the corresponding latent vector value
 
         self.initialize_sliders()  # Initialize sliders with the values
 
@@ -196,7 +196,7 @@ class Vae_Visualizer:
         image_array = np.transpose(image_array, (2, 0, 1))  # Transpose to (3, 96, 96)
 
         # Convert the numpy array to a PyTorch tensor
-        image_tensor = torch.tensor(image_array, dtype=torch.float32).unsqueeze(0)  # Convert to tensor and add batch dimension
+        image_tensor = torch.tensor(image_array, dtype=torch.float32).to('cuda').unsqueeze(0)  # Convert to tensor and add batch dimension
 
         return image_tensor  # Return the image tensor
 
@@ -244,7 +244,7 @@ class Vae_Visualizer:
 
         # Decode and set initial image
         img_init_tensor = self.vae.decode(latent_vector_init).squeeze(0).to(self.device)  # Decode initial latent vector
-        img_init = self.vae.decode(latent_vector_init).cpu().detach().numpy()  # Convert to numpy array
+        img_init = self.vae.decode(latent_vector_init).to(self.device).detach().cpu().numpy()  # Convert to numpy array
         img_init = img_init.squeeze(0)  # Squeeze to remove batch dimension
         img_init = np.transpose(img_init, (1, 2, 0))  # Transpose to (H, W, C)
 
@@ -252,10 +252,10 @@ class Vae_Visualizer:
         self.fig_image.canvas.draw_idle()  # Update figure
 
         # Initialize grid image
-        img_g = self.image_grid[5][4].squeeze(0).detach().numpy()  # Get initial grid image
+        img_g = self.image_grid[5][4].squeeze(0).detach().cpu().numpy()  # Get initial grid image
         img_g = np.transpose(img_g, (1, 2, 0))  # Transpose to (H, W, C)
         out, mu, logv = self.vae.forward(self.image_grid[5][4])  # Encode and decode the grid image
-        out = np.transpose(out.cpu().detach().numpy().squeeze(0), (1, 2, 0))  # Convert to numpy array and transpose
+        out = np.transpose(out.to(self.device).detach().cpu().numpy().squeeze(0), (1, 2, 0))  # Convert to numpy array and transpose
 
         self.img_display2.set_data(out)  # Set grid image data
         self.fig_image2.canvas.draw_idle()  # Update figure
@@ -314,7 +314,7 @@ class Vae_Visualizer:
 
                 # Decode and set current image
                 img_cur_tensor = self.vae.decode(latent_vector).squeeze(0).to(self.device)  # Decode latent vector
-                img = self.vae.decode(latent_vector).cpu().detach().numpy()  # Convert to numpy array
+                img = self.vae.decode(latent_vector).to(self.device).detach().numpy()  # Convert to numpy array
                 img = img.squeeze(0)  # Squeeze to remove batch dimension
                 img = np.transpose(img, (1, 2, 0))  # Transpose to (H, W, C)
 
@@ -359,11 +359,11 @@ class Vae_Visualizer:
 
 
 if __name__ == '__main__':
-    device = "cpu"
-    latent_sz = 32
+    device = "cuda" # cuda or cpu
+    latent_sz = 32 # latent space dimensions (ie numberof sliders)
     vae = VAE(latent_size=latent_sz).to(device)
     # Load model weights
-    best = torch.load("real_large_best_model.pth", map_location=torch.device('cpu'))
+    best = torch.load("real_large_best_model.pth", map_location=torch.device(device))
     vae.load_state_dict(best)
     vae.eval()
 
