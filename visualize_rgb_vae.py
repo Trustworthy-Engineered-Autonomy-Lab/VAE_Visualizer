@@ -72,6 +72,50 @@ def loss_function(recon_x, x, mu, logvar):
     reconstruction_loss = MSE(recon_x, x)
     kl_divergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     return reconstruction_loss + kl_divergence
+# Define method to generate an image given two states (ie for the cartpole model, position and angle are the two states 
+                                               # needed to generate an image)
+def getImage(self, position=0, angle=30):
+        # Generate image from CartPole environment based on position and angle
+        n = 1  # Number of iterations
+
+        # Create the environment
+        env = gym.make("CartPole-v1", render_mode="rgb_array")  # Create CartPole environment with RGB rendering
+        env.action_space.seed(82)  # Seed the action space for reproducibility
+
+        observation, info = env.reset(seed=82)  # Reset environment and get initial observation
+
+        # Manually set the state of the environment
+        env.env.env.env.state = np.array([position, 0, math.radians(angle), 0])  # Set state based on position and angle
+
+        # Take a random action
+        action = env.action_space.sample()  # Sample a random action
+
+        # Step the environment
+        observation, reward, terminated, truncated, info = env.step(action)  # Step the environment
+
+        # Render the environment
+        img = env.render()  # Render the environment to get an image
+
+        # Convert the image to a PIL image
+        img_pil = Image.fromarray(img)  # Convert to PIL image
+
+        # Resize the image to 96x96 pixels
+        img_resized = img_pil.resize((96, 96))  # Resize the image
+
+        # Close the environment
+        env.close()  # Close the environment
+
+        # Convert the resized image to a numpy array and normalize
+        image_array = np.array(img_resized) / 255.0  # Normalize image to range [0, 1]
+
+        # Transpose the image array to match the desired shape (3, 96, 96)
+        image_array = np.transpose(image_array, (2, 0, 1))  # Transpose to (3, 96, 96)
+
+        # Convert the numpy array to a PyTorch tensor
+        image_tensor = torch.tensor(image_array, dtype=torch.float32).to('cuda').unsqueeze(0)  # Convert to tensor and add batch dimension
+
+        return image_tensor  # Return the image tensor
+
 class Vae_Visualizer:
     def __init__(self, latent_size, vae, initial_image_path, device="cpu", dist_method="cosine"):
         # Initialize the visualizer with VAE models and other parameters
@@ -80,7 +124,6 @@ class Vae_Visualizer:
         self.vae = vae  # VAE model
         self.init_latent = None  # Placeholder for initial latent vector
         self.dist_method = dist_method  # Distance method for comparison (cosine by default)
-
         # Initialize grids for latent vectors, images, and heatmaps
         self.latent_grid = [[0] * 10 for i in range(10)]  # Grid to store latent vectors
         self.image_grid = [[0] * 10 for i in range(10)]  # Grid to store images
@@ -137,13 +180,13 @@ class Vae_Visualizer:
             for j in range(10):
                 angle += 10  # Increment angle
                 print(f"{i} {j} {pos} {angle}")  # Print grid indices, position, and angle
-                l2out = self.getImage(pos, angle)  # Get image tensor for the given position and angle
+                l2out = getImage(pos, angle)  # Get image tensor for the given position and angle
                 mu, logvar = vae.encode(l2out)  # Encode image to get mean and log variance
                 latent8 = vae.reparameterize_mean(mu, logvar)  # Reparameterize to get latent vector
                 self.latent_grid[i][j] = latent8  # Store latent vector in grid
                 self.image_grid[i][j] = l2out  # Store image tensor in grid
 
-        l2out = self.getImage(0, 0)  # Get image tensor for position 0 and angle 0
+        l2out = getImage(0, 0)  # Get image tensor for position 0 and angle 0
         mu, logvar = vae.encode(l2out)  # Encode image to get mean and log variance
         latent8 = vae.reparameterize_mean(mu, logvar)  # Reparameterize to get latent vector
         img_latent = latent8.squeeze(0)  # Squeeze the latent vector to remove batch dimension
@@ -158,48 +201,7 @@ class Vae_Visualizer:
         # Show all figures
         plt.show()  # Display the figures
 
-    def getImage(self, position=0, angle=30):
-        # Generate image from CartPole environment based on position and angle
-        n = 1  # Number of iterations
-
-        # Create the environment
-        env = gym.make("CartPole-v1", render_mode="rgb_array")  # Create CartPole environment with RGB rendering
-        env.action_space.seed(82)  # Seed the action space for reproducibility
-
-        observation, info = env.reset(seed=82)  # Reset environment and get initial observation
-
-        # Manually set the state of the environment
-        env.env.env.env.state = np.array([position, 0, math.radians(angle), 0])  # Set state based on position and angle
-
-        # Take a random action
-        action = env.action_space.sample()  # Sample a random action
-
-        # Step the environment
-        observation, reward, terminated, truncated, info = env.step(action)  # Step the environment
-
-        # Render the environment
-        img = env.render()  # Render the environment to get an image
-
-        # Convert the image to a PIL image
-        img_pil = Image.fromarray(img)  # Convert to PIL image
-
-        # Resize the image to 96x96 pixels
-        img_resized = img_pil.resize((96, 96))  # Resize the image
-
-        # Close the environment
-        env.close()  # Close the environment
-
-        # Convert the resized image to a numpy array and normalize
-        image_array = np.array(img_resized) / 255.0  # Normalize image to range [0, 1]
-
-        # Transpose the image array to match the desired shape (3, 96, 96)
-        image_array = np.transpose(image_array, (2, 0, 1))  # Transpose to (3, 96, 96)
-
-        # Convert the numpy array to a PyTorch tensor
-        image_tensor = torch.tensor(image_array, dtype=torch.float32).to('cuda').unsqueeze(0)  # Convert to tensor and add batch dimension
-
-        return image_tensor  # Return the image tensor
-
+    
     def ned_torch(self, x1: torch.Tensor, x2: torch.Tensor, dim=1, eps=1e-8) -> torch.Tensor:
         # Calculate normalized Euclidean distance (NED) between two tensors
         if len(x1.size()) == 1:  # Check if tensors are 1D
@@ -314,7 +316,7 @@ class Vae_Visualizer:
 
                 # Decode and set current image
                 img_cur_tensor = self.vae.decode(latent_vector).squeeze(0).to(self.device)  # Decode latent vector
-                img = self.vae.decode(latent_vector).to(self.device).detach().numpy()  # Convert to numpy array
+                img = self.vae.decode(latent_vector).to(self.device).cpu().detach().numpy()  # Convert to numpy array
                 img = img.squeeze(0)  # Squeeze to remove batch dimension
                 img = np.transpose(img, (1, 2, 0))  # Transpose to (H, W, C)
 
@@ -356,6 +358,7 @@ class Vae_Visualizer:
                 self.fig_diff.canvas.draw_idle()  # Redraw the figure
 
             slider.on_changed(update)  # Set update function for slider
+
 
 
 if __name__ == '__main__':

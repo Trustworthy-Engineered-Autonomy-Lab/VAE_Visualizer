@@ -25,7 +25,18 @@ The `Vae_Visualizer` class provides an interactive visualization tool for explor
    ```
 
 ## Usage
-
+### OpenAI Cartpole ENV Modification
+1. **Edit Package File:**
+   - Locate the following file: `.local/lib/python3.12/site-packages/gym/envs/classic_control/cartpole.py`
+   - Modify the following lines to match this: 
+   ```python
+   world_width = self.x_threshold * 2
+   scale = screen_width / world_width
+   polewidth = 20.0
+   polelen = 2*scale * (2 * self.length)
+   cartwidth = 60.0
+   cartheight = 40.0
+   ```
 ### Input Files
 
 1. **Model Weights:**
@@ -113,3 +124,4 @@ The `Vae_Visualizer` class provides an interactive visualization tool for explor
 ## Acknowledgments
 
 - This project uses the CartPole environment from OpenAI Gym.
+- Image heatmap was inspired from 
